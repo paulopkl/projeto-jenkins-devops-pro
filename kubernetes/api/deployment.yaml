@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deploy
+spec:
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: paulopkl/projeto-jenkins-devops-pro:{{tag}}
+          resources: {}
+          ports:
+            - containerPort: 80
+          env:
+            - name: Mongo__Host
+              value: "mongodb-service"
+            - name: Mongo__User
+              value: "mongodb_user"
+            - name: Mongo__Password
+              value: "mongodb_pwd"
+            - name: Mongo__Port
+              value: "27017"
+            - name: Mongo__DataBase
+              value: "admin"

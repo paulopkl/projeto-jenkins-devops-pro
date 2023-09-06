@@ -8,11 +8,12 @@ pipeline {
     agent any
 
     stages {
-        // stage('Teste') {
-        //     steps {
-        //         echo 'Teste'
-        //     }
-        // }
+        stage('Teste') {
+            steps {
+                echo 'Teste'
+            }
+        }
+
         stage("Checkout Source") {
             steps {
                 git([url: "https://github.com/paulopkl/projeto-jenkins-devops-pro.git", branch: "master", credentialsId: "github"])
@@ -37,57 +38,83 @@ pipeline {
                 }
             }
         }
+
+        stage('Change kubernetes deployment') {
+            environment {
+                tag_version = "${env.BUILD_ID}"
+            }
+
+            steps {
+                script {
+                    sh "sed -i 's/{{tag}}/${tag_version}/g' ./kubernetes/api/deployment.yaml"
+                    sh "cat ./kubernetes/api/deployment.yaml"
+                    // kubernetesDeploy(configs: "", kubeconfigId: "kubeconfig")
+                    // sh "kubectl --kubeconfig=/home/ubuntu/config get pods"
+                    // sh "kubectl --kubeconfig=/home/ubuntu/config apply -f deployment.yaml"
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'kube', serverUrl: 'https://38912EB3AA6BB482BED9AA2459530BD2.yl4.us-east-1.eks.amazonaws.com']) {
+                        sh 'kubectl apply -f ./kubernetes/api/deployment.yaml'
+                    }
+                }
+            }
+        }
+
+    //     stage('Remove Unused docker image') {
+    //       steps{
+    //         sh "docker rmi $imagename:$BUILD_NUMBER"
+    //          sh "docker rmi $imagename:latest"
+    //       }
+    //     }
     }
 }
 
-    // environment {
-    //     imagename = "harshmanvar/node-web-app"
-    //     registryCredential = 'docker'
-    //     dockerImage = ''
-    // }
-//   agent any
-//   stages {
-//     stage('Cloning Git') {
-//       steps {
-//         git([url: 'https://github.com/harsh4870/node-js-aws-cloudbuild-basic-ci-cd.git', branch: 'main', credentialsId: 'github'])
-
-//       }
-//     }
-//     stage('Building image') {
-//       steps{
-//         script {
-//           dockerImage = docker.build imagename
+//     stages {
+//         stage('Cloning Git') {
+//             steps {
+//                 git([url: 'https://github.com/harsh4870/node-js-aws-cloudbuild-basic-ci-cd.git', branch: 'main', credentialsId: 'github'])
+//             }
 //         }
-//       }
-//     }
-//     stage('Deploy Image') {
-//       steps{
-//         script {
-//           docker.withRegistry( '', registryCredential ) {
-//             dockerImage.push("$BUILD_NUMBER")
-//              dockerImage.push('latest')
 
-//           }
+//         stage('Building image') {
+//             steps{
+//                 script {
+//                     dockerImage = docker.build imagename
+//                 }
+//             }
 //         }
-//       }
-//     }
-//     stage('Deploy to K8s') {
-//       steps{
-//         script {
-//           sh "sed -i 's,TEST_IMAGE_NAME,harshmanvar/node-web-app:$BUILD_NUMBER,' deployment.yaml"
-//           sh "cat deployment.yaml"
-//           sh "kubectl --kubeconfig=/home/ec2-user/config get pods"
-//           sh "kubectl --kubeconfig=/home/ec2-user/config apply -f deployment.yaml"
-//         }
-//       }
-//     }
-    
-    
-//     stage('Remove Unused docker image') {
-//       steps{
-//         sh "docker rmi $imagename:$BUILD_NUMBER"
-//          sh "docker rmi $imagename:latest"
 
-//       }
+//         stage('Deploy Image') {
+//             steps{
+//                 script {
+//                     docker.withRegistry( '', registryCredential ) {
+//                         dockerImage.push("$BUILD_NUMBER")
+//                         dockerImage.push('latest')
+//                     }
+//                 }
+//             }
+//         }
+
+//         stage('Deploy to K8s') {
+//             steps{
+//                 script {
+//                     sh "sed -i 's,TEST_IMAGE_NAME,harshmanvar/node-web-app:$BUILD_NUMBER,' deployment.yaml"
+//                     sh "cat deployment.yaml"
+//                     sh "kubectl --kubeconfig=/home/ec2-user/config get pods"
+//                     sh "kubectl --kubeconfig=/home/ec2-user/config apply -f deployment.yaml"
+//                 }
+//             }
+//         }
+        
+//         stage('Remove Unused docker image') {
+//             steps{
+//                 sh "docker rmi $imagename:$BUILD_NUMBER"
+//                 sh "docker rmi $imagename:latest"
+//             }
+//         }
 //     }
-//   }
