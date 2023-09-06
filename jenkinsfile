@@ -1,11 +1,11 @@
 pipeline {
-    agente any
+    agent any
 
     stages {
         stage('Teste') {
             steps {
                 echo 'Teste'
-                
+
             }
         }
     }
