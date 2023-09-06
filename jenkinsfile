@@ -1,0 +1,11 @@
+pipeline {
+    agente any
+
+    stages {
+        stage('Teste') {
+            steps {
+                echo 'Teste'
+            }
+        }
+    }
+}
