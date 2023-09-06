@@ -16,7 +16,7 @@ pipeline {
 
         stage("Checkout Source") {
             steps {
-                git([url: "https://github.com/paulopkl/projeto-jenkins-devops-pro.git", branch: "master", credentialsId: "github"])
+                git([url: "https://github.com/paulopkl/projeto-jenkins-devops-pro.git", branch: "master", credentialsId: "git"])
             }
         }
         
@@ -56,6 +56,12 @@ pipeline {
         }
         
         stage('Deploy to Kubernetes') {
+            agent {
+                kubernetes {
+                    cloud 'aws'
+                }
+            }
+
             steps {
                 script {
                     withKubeConfig([credentialsId: 'kube', serverUrl: 'https://38912EB3AA6BB482BED9AA2459530BD2.yl4.us-east-1.eks.amazonaws.com']) {
